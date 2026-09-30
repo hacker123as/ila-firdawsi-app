@@ -322,6 +322,8 @@ SUPERS = {}
 
 def build_one(args):
     idx, out = args
+    if not SUPERS:
+        make_supers()
     shot = CFG['shots'][idx]
     rng = np.random.default_rng(100 + idx)
     wr = Writer(out)
@@ -344,8 +346,8 @@ def main():
     only = set(os.environ.get('ONLY', '').split(',')) - {''}
     todo = [i for i, s in enumerate(CFG['shots']) if not (os.environ.get('SKIP_DONE') and os.path.exists(parts[i] + '.ok')) and (not only or s['id'] in only)]
     os.makedirs(os.path.join(WORK, 'parts'), exist_ok=True)
-    from multiprocessing import Pool
-    with Pool(int(os.environ.get('JOBS', '3'))) as pool:
+    import multiprocessing as mpc
+    with mpc.get_context('spawn').Pool(int(os.environ.get('JOBS', '3'))) as pool:
         for msg in pool.imap_unordered(build_one, [(i, parts[i]) for i in todo]):
             print(msg, flush=True)
     with open(os.path.join(WORK, 'parts.txt'), 'w') as fh:
