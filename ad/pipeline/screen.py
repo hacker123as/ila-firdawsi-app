@@ -114,8 +114,8 @@ def composite(frame, ui_bgr, quad, inset=0.012, brightness=0.93, sheen=0.10, blu
     plate = frame.astype(np.float32)
     base = cv2.GaussianBlur(plate, (0, 0), 25)
     hi = np.clip(plate - base, 0, 255)
-    lum_plate = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32)[..., None] / 255
-    shade = 0.82 + 0.18 * cv2.GaussianBlur(lum_plate, (0, 0), 20)
+    lum_plate = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY).astype(np.float32) / 255
+    shade = (0.82 + 0.18 * cv2.GaussianBlur(lum_plate, (0, 0), 20))[..., None]
     uif = uif * shade + hi * sheen * 2
     out = plate * (1 - a) + np.clip(uif, 0, 255) * a
     return np.clip(out, 0, 255).astype(np.uint8)
