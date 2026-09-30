@@ -1,0 +1,289 @@
+{
+ "shots": [
+  {
+   "id": "s01_nyc",
+   "plate": "v1.mp4",
+   "in": 0.4,
+   "dur": 4.0,
+   "look": "city"
+  },
+  {
+   "id": "s02_walk",
+   "plate": "v2.mp4",
+   "in": 0.6,
+   "dur": 3.5,
+   "look": "city"
+  },
+  {
+   "id": "s03_curb",
+   "plate": "v3.mp4",
+   "in": 0.6,
+   "dur": 3.0,
+   "look": "city"
+  },
+  {
+   "id": "s04_reveal",
+   "plate": "v4.mp4",
+   "in": 1.0,
+   "dur": 3.25,
+   "look": "city",
+   "ui": [
+    [
+     0,
+     "B_modal_a",
+     0
+    ],
+    [
+     0.95,
+     "B_modal_b",
+     0
+    ],
+    [
+     1.9,
+     "B_modal_c",
+     0
+    ],
+    [
+     2.45,
+     "C_focus_cam_q0",
+     0.3
+    ]
+   ]
+  },
+  {
+   "id": "s05_portrait",
+   "plate": "v5.mp4",
+   "in": 0.5,
+   "dur": 4.0,
+   "look": "city"
+  },
+  {
+   "id": "s06_stand",
+   "plate": "v6.mp4",
+   "in": 0.4,
+   "dur": 3.0,
+   "look": "home",
+   "ui": [
+    [
+     0,
+     "C_focus_cam_q0",
+     0
+    ]
+   ]
+  },
+  {
+   "id": "s07_qiyam",
+   "plate": "v7.mp4",
+   "in": 1.2,
+   "dur": 2.8,
+   "look": "home"
+  },
+  {
+   "id": "s08_count1",
+   "plate": "v9.mp4",
+   "in": 0.0,
+   "dur": 2.4,
+   "look": "home",
+   "ui": [
+    [
+     0,
+     "D_focus_cam_s0",
+     0
+    ],
+    [
+     1.2,
+     "E_focus_cam_q1",
+     0.2
+    ]
+   ],
+   "screen": {
+    "lo": 226,
+    "span": 22,
+    "roi": [
+     0.55,
+     0.1,
+     0.95,
+     0.9
+    ]
+   }
+  },
+  {
+   "id": "s09_sujood",
+   "plate": "v7.mp4",
+   "in": 7.7,
+   "dur": 2.3,
+   "look": "home"
+  },
+  {
+   "id": "s10_count2",
+   "plate": "v9.mp4",
+   "in": 2.2,
+   "dur": 2.8,
+   "look": "home",
+   "ui": [
+    [
+     0,
+     "F_focus_cam_s1",
+     0
+    ],
+    [
+     0.6,
+     "G_focus_cam_q2",
+     0.2
+    ]
+   ],
+   "defocus_phone": [
+    1.2,
+    2.6,
+    9
+   ],
+   "screen": {
+    "lo": 226,
+    "span": 22,
+    "roi": [
+     0.55,
+     0.1,
+     0.95,
+     0.9
+    ]
+   }
+  },
+  {
+   "id": "s11_montage",
+   "kind": "montage",
+   "dur": 10.5,
+   "cards": [
+    {
+     "ui": "A_home_before",
+     "dur": 2.1,
+     "label": "Prayer times, wherever you are"
+    },
+    {
+     "ui": "B_modal_a",
+     "dur": 2.1,
+     "label": "A gentle prompt when it is time"
+    },
+    {
+     "ui": "C_focus_cam_q0",
+     "dur": 2.1,
+     "label": "Prayer Focus Mode",
+     "sub": "Distractions paused while you pray"
+    },
+    {
+     "ui": "G_focus_cam_q2",
+     "dur": 2.1,
+     "label": "Rakʿah counter",
+     "sub": "Counts on your device. Nothing leaves it."
+    },
+    {
+     "ui": "M_qibla",
+     "dur": 2.1,
+     "label": "Qibla, from where you stand"
+    }
+   ]
+  },
+  {
+   "id": "s12_hero",
+   "plate": "v6.mp4",
+   "in": 3.0,
+   "dur": 2.0,
+   "hold": 2.0,
+   "push": 0.06,
+   "look": "home",
+   "ui": [
+    [
+     0,
+     "H_focus_complete",
+     0
+    ]
+   ],
+   "super": {
+    "id": "step",
+    "t": 0.5,
+    "hold": 2.9
+   }
+  },
+  {
+   "id": "s13_end",
+   "kind": "endcard",
+   "dur": 6.0,
+   "cta": "Now on Android",
+   "cta_t": 2.6
+  }
+ ],
+ "supers": {
+  "step": {
+   "text": "Technology that knows when to step back.",
+   "kind": "display",
+   "size": 92,
+   "xy": [
+    1920,
+    1800
+   ],
+   "rgba": [
+    255,
+    250,
+    242,
+    245
+   ]
+  }
+ },
+ "audio": {
+  "length": 51.55,
+  "city_quiet": 15.4,
+  "city_end": 17.75,
+  "room_end": 31.3,
+  "city_db": -1,
+  "music_db": -4,
+  "vo_db": 0,
+  "sfx": [
+   {
+    "type": "chime",
+    "t": 7.95,
+    "db": -2
+   },
+   {
+    "type": "fabric",
+    "t": 8.3,
+    "db": -6
+   },
+   {
+    "type": "placement",
+    "t": 19.55,
+    "db": -3
+   },
+   {
+    "type": "tick",
+    "t": 24.75,
+    "db": -4
+   },
+   {
+    "type": "tick",
+    "t": 28.85,
+    "db": -4
+   }
+  ],
+  "vo": [
+   {
+    "file": "vo/l1.wav",
+    "t": 1.4
+   },
+   {
+    "file": "vo/l2.wav",
+    "t": 14.3
+   },
+   {
+    "file": "vo/l3.wav",
+    "t": 18.4
+   },
+   {
+    "file": "vo/l4.wav",
+    "t": 42.1
+   },
+   {
+    "file": "vo/l5.wav",
+    "t": 46.9
+   }
+  ]
+ }
+}

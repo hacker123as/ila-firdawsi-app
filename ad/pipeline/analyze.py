@@ -9,7 +9,10 @@ def frames(p, scale=0.5):
         if not ok: break
         out.append(cv2.resize(f, None, fx=scale, fy=scale))
     return out
+import json
+SH = {x.get('plate','').replace('.mp4',''): x.get('screen', {}) for x in json.load(open(os.path.join(os.path.dirname(__file__), 'shots.json')))['shots']}
 for name in sys.argv[2:]:
+    screen.OPTS.update({'lo': 175.0, 'span': 45.0, 'roi': None}); screen.OPTS.update(SH.get(name, {}))
     fr = frames(f'{W}/plates/{name}.mp4')
     print(f'== {name}: {len(fr)} frames')
     raw = [screen.find_quad(f) for f in fr]

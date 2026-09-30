@@ -15,10 +15,18 @@ def order_corners(pts):
     return np.array([pts[np.argmin(s)], pts[np.argmin(d)], pts[np.argmax(s)], pts[np.argmax(d)]], np.float32)
 
 
+OPTS = {'lo': 175.0, 'span': 45.0, 'roi': None}
+
+
 def screen_mask(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     v, s = hsv[..., 2].astype(np.float32), hsv[..., 1].astype(np.float32)
-    m = np.clip((v - 175) / 45, 0, 1) * np.clip((70 - s) / 30, 0, 1)
+    m = np.clip((v - OPTS['lo']) / OPTS['span'], 0, 1) * np.clip((70 - s) / 30, 0, 1)
+    if OPTS['roi'] is not None:
+        h, w = m.shape
+        x0, y0, x1, y1 = OPTS['roi']
+        r = np.zeros_like(m); r[int(y0 * h):int(y1 * h), int(x0 * w):int(x1 * w)] = 1
+        m *= r
     return m
 
 

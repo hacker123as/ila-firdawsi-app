@@ -2,7 +2,7 @@
 Arc: city pulse -> room for the alert -> warmth -> stillness at home -> gentle lift -> resolve. Writes score.wav."""
 import sys, wave
 import numpy as np
-SR = 48000; T = 57.0; N = int(SR * T)
+SR = 48000; T = 52.5; N = int(SR * T)
 OUT = sys.argv[1] if len(sys.argv) > 1 else 'score.wav'
 L = np.zeros(N); R = np.zeros(N)
 rng = np.random.default_rng(7)
@@ -57,24 +57,24 @@ def pulse(t0, t1, bpm=72, vol=0.25, m=29):
 
 F9 = [53, 57, 60, 64, 67]; Am7 = [57, 60, 64, 67]; Dm9 = [50, 53, 57, 60, 64]; Bb9 = [46, 53, 57, 60, 62]; Csus = [48, 53, 55, 60]; Fadd9 = [41, 53, 57, 60, 67]
 bar = 60 / 72 * 4
-prog = [F9, Am7, Dm9, Bb9, Csus, Bb9, F9, Dm9, Bb9, F9, Am7, Dm9, Bb9, Csus, Bb9, Fadd9, Fadd9]
+prog = [F9, Am7, Dm9, Bb9, Csus, Bb9, F9, Dm9, Bb9, F9, Am7, Dm9, Bb9, Csus, Fadd9, Fadd9]
 for b, ch in enumerate(prog):
     t0 = b * bar
-    vol = 0.05 if t0 < 11 else (0.06 if 19 < t0 < 36 else 0.075)
+    vol = 0.05 if t0 < 11 else (0.06 if 19 < t0 < 31 else 0.075)
     add(pad([c + 12 if c < 50 else c for c in ch], bar, vol=vol, att=1.8, rel=2.5), t0)
     add(pad([ch[0] - 12], bar, vol=0.05, att=1.0, rel=2.0), t0)
 motif = {0: [(0, 72), (1.25, 69), (2.5, 67)], 1: [(0, 72), (1.9, 76)], 2: [(0.4, 74), (2.5, 72)], 3: [(0, 69), (1.6, 72), (2.5, 74)],
          4: [(0.2, 72)], 5: [(0, 74), (1.8, 72)], 6: [(0.3, 77), (1.9, 76), (2.6, 72)], 7: [(0.5, 74)], 8: [(0, 72), (2.0, 69)], 9: [(0.8, 72)],
          10: [(0, 76), (1.3, 74), (2.4, 72)], 11: [(0, 77), (1.5, 76), (2.6, 74)], 12: [(0, 74), (1.2, 72), (2.4, 69)], 13: [(0, 72), (1.7, 74)],
-         14: [(0, 77), (2, 76)], 15: [(0, 72), (0.02, 65), (0.04, 60)], 16: []}
+         14: [(0, 72), (0.02, 65), (0.04, 60)], 15: []}
 for b, notes in motif.items():
     for off, m in notes:
         t0 = b * bar + off * bar / 4
-        v = 0.45 if 15 < t0 < 36 else 0.38
+        v = 0.45 if 15 < t0 < 31 else 0.38
         add(piano(m, 5.0, v), t0, 1.0, rng.uniform(-0.3, 0.3))
-        if b in (6, 15): add(piano(m - 12, 5.0, v * 0.6), t0, 1.0, -0.2)
+        if b in (6, 14): add(piano(m - 12, 5.0, v * 0.6), t0, 1.0, -0.2)
 pulse(0.0, 10.8, vol=0.22)     # the city
-pulse(36.0, 46.3, vol=0.14)    # the product montage
+pulse(31.0, 41.4, vol=0.14)    # the product montage
 
 
 def verb(x, dec=0.5):
@@ -86,7 +86,7 @@ def verb(x, dec=0.5):
 
 L2 = L + 0.6 * verb(R, 0.7); R2 = R + 0.6 * verb(L, 0.7)
 fi = int(0.4 * SR); L2[:fi] *= np.linspace(0, 1, fi); R2[:fi] *= np.linspace(0, 1, fi)
-fo = int(3.0 * SR); L2[-fo:] *= np.linspace(1, 0, fo) ** 2; R2[-fo:] *= np.linspace(1, 0, fo) ** 2
+fo = int(2.5 * SR); L2[-fo:] *= np.linspace(1, 0, fo) ** 2; R2[-fo:] *= np.linspace(1, 0, fo) ** 2
 st = np.stack([L2, R2], 1); st /= np.max(np.abs(st)) * 1.12
 with wave.open(OUT, 'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR); w.writeframes((st * 32767).astype(np.int16).tobytes())

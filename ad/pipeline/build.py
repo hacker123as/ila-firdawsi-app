@@ -192,7 +192,9 @@ def render_plate(shot, wr, rng):
         for _, name, _ in sched:
             if name not in cache:
                 cache[name] = load_ui(name, cam if 'cam' in name else None)
+    screen.OPTS.update({'lo': 175.0, 'span': 45.0, 'roi': None}); screen.OPTS.update(shot.get('screen', {}))
     frames = list(read_frames(src, shot['in'], shot['dur']))
+    frames += [frames[-1]] * int(round(shot.get('hold', 0) * FPS))
     quads = screen.track(frames) if sched else None
     defocus = shot.get('defocus_phone')  # (t_start, t_end, max_sigma): phone falls out of focus
     push = shot.get('push', 0.0)
