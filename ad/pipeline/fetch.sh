@@ -12,7 +12,13 @@ get $C/hf_20260930_075707_64efcd34-4379-406e-8cf1-a59ba5540db2.mp4 $W/plates/v4.
 get $C/hf_20260930_075706_67551c25-eead-4584-b31e-000d0d2ae48b.mp4 $W/plates/v5.mp4
 get $C/hf_20260930_075815_f7150333-3fdb-4f7e-a779-39695c5536b7.mp4 $W/plates/v6.mp4
 get $C/hf_20260930_080025_5cbac3d3-b343-47d6-83e0-6e6e49430d7b.mp4 $W/plates/v7.mp4
-[ -n "$V9" ] && get $C/$V9 $W/plates/v9.mp4
+get $C/hf_20260930_080502_2a8cd2b3-ecb0-4be8-bd35-aebbdd4f23de.mp4 $W/plates/v9.mp4
+# voice: Soraya (lines 1-4), brand name take 2 ("Eela Fir-dow-see")
+get $C/hf_20260930_075607_0b6347a7-d69a-4eb7-a20f-e39d07d74536.wav $W/vo/l1.wav
+get $C/hf_20260930_075608_fa35754e-4840-43bb-9bc6-af65403401c9.wav $W/vo/l2.wav
+get $C/hf_20260930_075607_ba947b61-4e8d-4c01-ac98-62263e520b9b.wav $W/vo/l3.wav
+get $C/hf_20260930_075607_36b424f9-b7cc-4426-b427-c959701700e1.wav $W/vo/l4.wav
+get $C/hf_20260930_081235_aef86d6d-c554-4d2e-b14a-2719a0d329ef.wav $W/vo/l5.wav
 for f in A_home_before B_modal_a B_modal_b B_modal_c C_focus_cam_q0 D_focus_cam_s0 E_focus_cam_q1 F_focus_cam_s1 G_focus_cam_q2 H_focus_complete I_prayer_before J_prayer_after J_home_after M_qibla I_prayer_scroll1; do get $R/ui/$f.png $W/ui/$f.png; done
 get $R/endcard_splash_4k.mp4 $W/endcard_splash_4k.mp4
 get "https://github.com/google/fonts/raw/main/ofl/nunito/Nunito%5Bwght%5D.ttf" $W/fonts/Nunito.ttf
