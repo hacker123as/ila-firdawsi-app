@@ -40,7 +40,7 @@ class Writer:
     def __init__(self, path):
         self.p = subprocess.Popen(
             f'ffmpeg -v error -y -f rawvideo -pix_fmt bgr24 -s {W}x{H} -r {FPS} -i - '
-            f'-c:v libx264 -preset medium -crf 14 -pix_fmt yuv420p -x264-params keyint=24 "{path}"',
+            f'-c:v libx264 -preset fast -crf 14 -pix_fmt yuv420p -threads 3 -x264-params keyint=24:rc-lookahead=12 "{path}"',
             shell=True, stdin=subprocess.PIPE)
         self.n = 0
 
