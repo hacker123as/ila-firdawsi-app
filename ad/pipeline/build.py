@@ -186,26 +186,49 @@ def drop_shadow(size, radius_frac=0.12, blur=60, opacity=110):
 def render_plate(shot, wr, rng):
     src = os.path.join(WORK, 'plates', shot['plate'])
     sched = shot.get('ui')
+    screen.OPTS.update({'lo': 175.0, 'span': 45.0, 'roi': None}); screen.OPTS.update(shot.get('screen', {}))
     cam = cv2.imread(os.path.join(WORK, 'camfill.png'))
     cache = {}
     if sched:
         for _, name, _ in sched:
             if name not in cache:
                 cache[name] = load_ui(name, cam if 'cam' in name else None)
-    screen.OPTS.update({'lo': 175.0, 'span': 45.0, 'roi': None}); screen.OPTS.update(shot.get('screen', {}))
-    frames = list(read_frames(src, shot['in'], shot['dur']))
-    frames += [frames[-1]] * int(round(shot.get('hold', 0) * FPS))
-    quads = screen.track(frames) if sched else None
-    defocus = shot.get('defocus_phone')  # (t_start, t_end, max_sigma): phone falls out of focus
+    hold = int(round(shot.get('hold', 0) * FPS))
+    quads = None
+    if sched:
+        # pass 1: track at half resolution (cheap, low memory), scale corners to 4K
+        small = list(read_frames(src, shot['in'], shot['dur'], size=(W // 2, H // 2)))
+        quads = [q * 2 if q is not None else None for q in screen.track(small)]
+        quads += [quads[-1]] * hold
+    defocus = shot.get('defocus_phone')
     push = shot.get('push', 0.0)
-    for i, f in enumerate(frames):
+    qc = []
+
+    def frames_iter():
+        last = None
+        for f in read_frames(src, shot['in'], shot['dur']):
+            last = f
+            yield f
+        for _ in range(hold):
+            yield last.copy()
+
+    total = int(round(shot['dur'] * FPS)) + hold
+    for i, f in enumerate(frames_iter()):
         t = i / FPS
-        if sched and quads[i] is not None:
+        if sched and quads[min(i, len(quads) - 1)] is not None:
+            quads_i = quads[min(i, len(quads) - 1)]
             ui = screen.ui_at(t, [(a, b, c) for a, b, c in sched], cache)
-            f = screen.composite(f, ui, quads[i], blur=shot.get('ui_blur', 0.6))
+            before = f
+            f = screen.composite(f, ui, quads_i, blur=shot.get('ui_blur', 0.6))
+            if i % 12 == 0:
+                m = np.zeros(f.shape[:2], np.uint8)
+                cv2.fillConvexPoly(m, quads_i.astype(np.int32), 1)
+                inside = m.astype(bool)
+                changed = (np.abs(f.astype(int) - before.astype(int)).max(-1) > 25) & inside
+                qc.append(f"{t:.1f}s cover={changed.sum() / max(1, inside.sum()):.2f} quad={quads_i.mean(0).astype(int).tolist()} w={int(np.linalg.norm(quads_i[1]-quads_i[0]))}")
             if defocus and t > defocus[0]:
                 k = ease((t - defocus[0]) / (defocus[1] - defocus[0]))
-                q = quads[i]
+                q = quads_i
                 c = q.mean(0); qq = c + (q - c) * 1.9
                 m = np.zeros(f.shape[:2], np.float32)
                 cv2.fillConvexPoly(m, qq.astype(np.int32), 1.0)
@@ -213,7 +236,7 @@ def render_plate(shot, wr, rng):
                 bl = cv2.GaussianBlur(f, (0, 0), 1 + defocus[2] * k)
                 f = (f * (1 - m) + bl * m).astype(np.uint8)
         if push:
-            z = 1 + push * (i / max(1, len(frames) - 1))
+            z = 1 + push * (i / max(1, total - 1))
             M = cv2.getRotationMatrix2D((W / 2, H / 2), 0, z)
             f = cv2.warpAffine(f, M, (W, H), flags=cv2.INTER_CUBIC, borderMode=cv2.BORDER_REFLECT)
         f = grade(f, shot.get('look', 'neutral'))
@@ -224,7 +247,9 @@ def render_plate(shot, wr, rng):
             if k > 0:
                 f = over(f, SUPERS[s['id']], k, dy=(1 - k) * 12)
         wr.write(f)
-    return len(frames)
+    if qc:
+        print(f"QC {shot['id']}: " + ' | '.join(qc), flush=True)
+    return wr.n
 
 
 def render_montage(shot, wr, rng):
@@ -295,24 +320,34 @@ def render_endcard(shot, wr, rng):
 SUPERS = {}
 
 
-def main():
-    rng = np.random.default_rng(3)
+def build_one(args):
+    idx, out = args
+    shot = CFG['shots'][idx]
+    rng = np.random.default_rng(100 + idx)
+    wr = Writer(out)
+    kind = shot.get('kind', 'plate')
+    n = {'plate': render_plate, 'montage': render_montage, 'endcard': render_endcard}[kind](shot, wr, rng)
+    wr.close()
+    open(out + '.ok', 'w').write(str(n))
+    return f"shot {shot['id']}: {n} frames ({n / FPS:.2f}s)"
+
+
+def make_supers():
     for sid, s in CFG.get('supers', {}).items():
         SUPERS[sid] = text_layer([(s['text'], s.get('kind', 'display'), s.get('size', 84), tuple(s.get('rgba', [255, 250, 242, 240])))],
                                  tuple(s['xy']), align=s.get('align', 'center'))
-    parts = []
+
+
+def main():
+    make_supers()
+    parts = [os.path.join(WORK, 'parts', f"{i:02d}_{s['id']}.mp4") for i, s in enumerate(CFG['shots'])]
     only = set(os.environ.get('ONLY', '').split(',')) - {''}
-    for idx, shot in enumerate(CFG['shots']):
-        out = os.path.join(WORK, 'parts', f"{idx:02d}_{shot['id']}.mp4")
-        parts.append(out)
-        if only and shot['id'] not in only and os.path.exists(out):
-            continue
-        os.makedirs(os.path.dirname(out), exist_ok=True)
-        wr = Writer(out)
-        kind = shot.get('kind', 'plate')
-        n = {'plate': render_plate, 'montage': render_montage, 'endcard': render_endcard}[kind](shot, wr, rng)
-        wr.close()
-        print(f"shot {shot['id']}: {n} frames ({n / FPS:.2f}s)", flush=True)
+    todo = [i for i, s in enumerate(CFG['shots']) if not (os.environ.get('SKIP_DONE') and os.path.exists(parts[i] + '.ok')) and (not only or s['id'] in only)]
+    os.makedirs(os.path.join(WORK, 'parts'), exist_ok=True)
+    from multiprocessing import Pool
+    with Pool(int(os.environ.get('JOBS', '3'))) as pool:
+        for msg in pool.imap_unordered(build_one, [(i, parts[i]) for i in todo]):
+            print(msg, flush=True)
     with open(os.path.join(WORK, 'parts.txt'), 'w') as fh:
         for p in parts:
             fh.write(f"file '{p}'\n")
