@@ -1,11 +1,16 @@
-name: Sync latest Android APK
+name: Sync Android APK
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/sync-apk.yml"
   workflow_dispatch:
+    inputs:
+      artifact_url:
+        description: Temporary artifact ZIP URL containing ila-firdawsi.apk
+        required: true
+        type: string
+      tag:
+        description: Version tag, for example app-v1.5.0
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -20,9 +25,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Android 1.5.0 build artifact
+      - name: Download Android artifact
         env:
-          APK_ARTIFACT_URL: "https://sdmntpreastus2.oaiusercontent.com/files/00000000-f0e8-81f6-9801-afcb7e9728e0/raw?se=2026-10-06T06%3A38%3A26Z&sp=r&sv=2026-02-06&sr=b&scid=7b4239bc-ead6-53c3-9d76-645ea5a9aba7&skoid=38550de5-1fab-49d1-9ebb-83af5557cc43&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-10-06T02%3A06%3A43Z&ske=2026-10-07T02%3A06%3A43Z&sks=b&skv=2026-02-06&sig=6Mw%2BemycA5kLQf9FMk8ZrTg8lA4d3Pa/6PeQ8RFc3yk%3D"
+          APK_ARTIFACT_URL: ${{ inputs.artifact_url }}
+          APK_TAG: ${{ inputs.tag }}
         run: |
           curl -fL --retry 3 --retry-delay 2 "$APK_ARTIFACT_URL" -o /tmp/ila-firdawsi-apk.zip
           rm -rf /tmp/ila-apk && mkdir -p /tmp/ila-apk
@@ -41,11 +47,11 @@ jobs:
             exit 1
           fi
 
-          printf 'app-v1.5.0\n' > .apk-version
-          echo "APK_TAG=app-v1.5.0" >> "$GITHUB_ENV"
-          echo "APK_SIZE=$size" >> "$GITHUB_ENV"
+          printf '%s\n' "$APK_TAG" > .apk-version
 
       - name: Commit the current APK
+        env:
+          APK_TAG: ${{ inputs.tag }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
