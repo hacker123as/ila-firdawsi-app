@@ -2,15 +2,12 @@ name: Sync Android APK
 
 on:
   workflow_dispatch:
-    inputs:
-      artifact_url:
-        description: Temporary artifact ZIP URL containing ila-firdawsi.apk
-        required: true
-        type: string
-      tag:
-        description: Version tag, for example app-v1.5.0
-        required: true
-        type: string
+  schedule:
+    - cron: "*/15 * * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/sync-apk.yml"
 
 permissions:
   contents: write
@@ -25,15 +22,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Android artifact
-        env:
-          APK_ARTIFACT_URL: ${{ inputs.artifact_url }}
-          APK_TAG: ${{ inputs.tag }}
+      - name: Find latest Android release
         run: |
-          curl -fL --retry 3 --retry-delay 2 "$APK_ARTIFACT_URL" -o /tmp/ila-firdawsi-apk.zip
-          rm -rf /tmp/ila-apk && mkdir -p /tmp/ila-apk
-          unzip -q /tmp/ila-firdawsi-apk.zip -d /tmp/ila-apk
-          cp /tmp/ila-apk/ila-firdawsi.apk ./ila-firdawsi.apk
+          set -euo pipefail
+          curl -fsSL             -H "Accept: application/vnd.github+json"             -H "X-GitHub-Api-Version: 2022-11-28"             "https://api.github.com/repos/hacker123as/Ila-Firadawsi-Code/releases?per_page=30"             -o /tmp/releases.json
+
+          APK_TAG="$(jq -r '[.[] | select(.draft == false) | select(.tag_name | startswith("app-v"))][0].tag_name // empty' /tmp/releases.json)"
+          if [ -z "$APK_TAG" ]; then
+            echo "No app-v* Android release was found."
+            exit 1
+          fi
+
+          APK_URL="$(jq -r --arg tag "$APK_TAG" '.[] | select(.tag_name == $tag) | .assets[] | select(.name == "ila-firdawsi.apk") | .browser_download_url' /tmp/releases.json | head -n1)"
+          if [ -z "$APK_URL" ]; then
+            echo "$APK_TAG does not contain ila-firdawsi.apk"
+            exit 1
+          fi
+
+          echo "APK_TAG=$APK_TAG" >> "$GITHUB_ENV"
+          echo "APK_URL=$APK_URL" >> "$GITHUB_ENV"
+          echo "Latest Android release: $APK_TAG"
+
+      - name: Download and verify latest APK
+        run: |
+          set -euo pipefail
+          curl -fL --retry 4 --retry-delay 2             -H "Accept: application/octet-stream"             -H "User-Agent: ila-firdawsi-apk-mirror"             "$APK_URL"             -o ila-firdawsi.apk
 
           size="$(stat -c%s ila-firdawsi.apk)"
           if [ "$size" -lt 1000000 ]; then
@@ -43,24 +56,24 @@ jobs:
 
           magic="$(xxd -p -l 4 ila-firdawsi.apk)"
           if [ "$magic" != "504b0304" ]; then
-            echo "Downloaded file is not an APK/ZIP"
+            echo "Downloaded file is not an APK/ZIP."
             exit 1
           fi
 
           printf '%s\n' "$APK_TAG" > .apk-version
+          echo "Mirrored $APK_TAG ($size bytes)."
 
-      - name: Commit the current APK
-        env:
-          APK_TAG: ${{ inputs.tag }}
+      - name: Commit latest APK to main
         run: |
+          set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add ila-firdawsi.apk .apk-version
 
           if git diff --cached --quiet; then
-            echo "The download repo already has $APK_TAG."
+            echo "main already has $APK_TAG."
             exit 0
           fi
 
           git commit -m "Sync Ila Firdawsi Android $APK_TAG"
-          git push
+          git push origin HEAD:main
