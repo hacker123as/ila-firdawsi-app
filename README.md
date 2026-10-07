@@ -3,7 +3,7 @@
 **[Download the app (APK)](https://github.com/hacker123as/ila-firdawsi-app/raw/refs/heads/main/ila-firdawsi.apk)**
 
 Prayer, Qur'an and daily spiritual rhythm, undisturbed. The app is the live
-[ilafirdawsi.vercel.app](https://ila-firadawsi-app.vercel.app/), so it is always up to date, with a prayer
+[ila-firadawsi-app.vercel.app](https://ila-firadawsi-app.vercel.app/), so it is always up to date, with a prayer
 lock, Google sign-in and your own theme.
 
 ## Installing
